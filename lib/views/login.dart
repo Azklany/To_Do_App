@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_app/views/tasks_view.dart';
+import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -80,10 +82,12 @@ class Login extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 221, 203, 215)),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const TopLeftPhoto(child: TasksView())));
+                },
                 child: const Text("Login"),
               ),
-            )
+            ),
           ],
         ),
       ),
