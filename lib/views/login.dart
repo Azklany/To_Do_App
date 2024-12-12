@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_app/views/register_view.dart';
 import 'package:to_do_app/views/tasks_view.dart';
 import 'package:to_do_app/widgets/top_left_photo.dart';
 
@@ -7,88 +8,128 @@ class Login extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    GlobalKey<FormState> globalKey = GlobalKey();
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: ListView(
-          children: [
-            const SizedBox(
-              height: 50,
-            ),
-            Container(
-              decoration:
-                  const BoxDecoration(shape: BoxShape.circle, boxShadow: [
-                BoxShadow(
-                    color: Color.fromARGB(255, 188, 134, 171),
-                    offset: Offset(3, 5),
-                    blurRadius: 30),
-              ]),
-              child: const CircleAvatar(
-                backgroundColor: Color.fromARGB(255, 221, 203, 215),
-                maxRadius: 100,
-                child: Icon(
-                  Icons.person,
-                  size: 150,
-                ),
+        child: Form(
+          key: globalKey,
+          child: ListView(
+            children: [
+              const SizedBox(
+                height: 100,
               ),
-            ),
-            const SizedBox(
-              height: 50,
-            ),
-            const Row(
-              children: [
-                Text(
-                  "Login",
-                  style: TextStyle(fontSize: 30),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Container(
-              decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 234, 208, 221),
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
-              child: TextFormField(
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Welcome back",
+                    style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              Image.asset(
+                "assets/draw_back.png",
+                height: 138,
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              TextFormField(
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Please enter your email";
+                  }
+                },
                 decoration: const InputDecoration(
-                    border: OutlineInputBorder(
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
                         borderRadius: BorderRadius.all(Radius.circular(20))),
-                    hintText: "Enter you name",
-                    labelText: "Full Name"),
+                    hintText: "Enter your email",
+                    labelText: "Email"),
               ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Container(
-              decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 234, 208, 221),
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
-              child: TextFormField(
+              const SizedBox(
+                height: 20,
+              ),
+              TextFormField(
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Please enter your password";
+                  }
+                },
                 decoration: const InputDecoration(
-                    border: OutlineInputBorder(
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
                       borderRadius: BorderRadius.all(Radius.circular(20)),
                     ),
-                    hintText: "Enter you pass",
+                    hintText: "Enter you password",
                     labelText: "Password"),
               ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            SizedBox(
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 221, 203, 215)),
-                onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> TopLeftPhoto(child: TasksView())));
-                },
-                child: const Text("Login"),
+              const SizedBox(
+                height: 30,
               ),
-            ),
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                      onTap: () {},
+                      child: const Text(
+                        "Forget password ?",
+                        style: TextStyle(color: Color(0xff50C2C9)),
+                      )),
+                ],
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (globalKey.currentState!.validate()) {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) =>
+                              TopLeftPhoto(child: TasksView())));
+                    }
+                  },
+                  child: const Text("Login"),
+                ),
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don`t have an account ? ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const TopLeftPhoto(child: RegisterView()),
+                          ));
+                    },
+                    child: const Text(
+                      "Sign Up",
+                      style: TextStyle(color: Color(0xff50C2C9)),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
