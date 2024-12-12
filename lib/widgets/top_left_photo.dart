@@ -7,6 +7,7 @@ class TopLeftPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      
       children: [
         child,
         Image.asset(

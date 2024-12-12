@@ -83,7 +83,7 @@ class Login extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 221, 203, 215)),
                 onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const TopLeftPhoto(child: TasksView())));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> TopLeftPhoto(child: TasksView())));
                 },
                 child: const Text("Login"),
               ),
