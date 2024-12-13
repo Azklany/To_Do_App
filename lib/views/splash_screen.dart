@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:to_do_app/views/login.dart';
+import 'package:to_do_app/views/tasks_view.dart';
 import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
-  
-  @override 
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
@@ -34,9 +36,18 @@ class SplashScreen extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.8,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) =>
-                          const TopLeftPhoto(child: Login())));
+                  print(Supabase.instance.client.auth.currentSession);
+                  final session = Supabase.instance.client.auth.currentSession;
+                  if (session != null ) {
+                    // User is logged in
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) =>
+                            TopLeftPhoto(child: TasksView())));
+                  } else {
+                    // User is not logged in
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => TopLeftPhoto(child: Login())));
+                  }
                 },
                 child: const Text("Get Started"),
               ),

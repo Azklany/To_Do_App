@@ -27,7 +27,6 @@ class ToDoApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData().copyWith(
-          useMaterial3: true,
           elevatedButtonTheme: const ElevatedButtonThemeData(
             style: ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(Color(0xFF50C2C9)),

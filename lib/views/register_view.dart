@@ -1,10 +1,36 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:to_do_app/views/login.dart';
-import 'package:to_do_app/views/tasks_view.dart';
 import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class RegisterView extends StatelessWidget {
-  const RegisterView({super.key});
+  RegisterView({super.key});
+
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  Future<bool> signUp(String email, String password) async {
+    try {
+      final response = await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+      );
+      if (response.user != null) {
+        log('User signed up successfully: ${response.user!.email}');
+        return true;
+      } else {
+        log('Unexpected issue during sign-up.');
+        return false;
+      }
+    } catch (e) {
+      log('Sign up failed: $e');
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +53,7 @@ class RegisterView extends StatelessWidget {
                     "Welcome to Onboard! ",
                     style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(
+                  SizedBox(
                     height: 15,
                   ),
                   SizedBox(
@@ -43,17 +69,22 @@ class RegisterView extends StatelessWidget {
                 height: 40,
               ),
               TextFormField(
+                controller: nameController,
                 validator: (value) {
                   if (value!.isEmpty) {
                     return "Please enter your name";
                   }
+                  return null;
                 },
                 decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.all(Radius.circular(20))),
+                      borderSide: BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(20),
+                      ),
+                    ),
                     hintText: "Enter your name",
                     labelText: "Full Name"),
               ),
@@ -61,10 +92,17 @@ class RegisterView extends StatelessWidget {
                 height: 20,
               ),
               TextFormField(
+                controller: emailController,
                 validator: (value) {
-                  if (value!.isEmpty) {
-                    return "Please enter your email";
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your email';
                   }
+                  final emailRegex =
+                      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Please enter a valid email address';
+                  }
+                  return null;
                 },
                 decoration: const InputDecoration(
                     filled: true,
@@ -80,10 +118,12 @@ class RegisterView extends StatelessWidget {
                 height: 20,
               ),
               TextFormField(
+                controller: passwordController,
                 validator: (value) {
-                  if (value!.isEmpty) {
+                  if (value!.trim().isEmpty) {
                     return "Please enter your password";
                   }
+                  return null;
                 },
                 decoration: const InputDecoration(
                     filled: true,
@@ -99,10 +139,15 @@ class RegisterView extends StatelessWidget {
                 height: 20,
               ),
               TextFormField(
+                controller: confirmPasswordController,
                 validator: (value) {
-                  if (value!.isEmpty) {
+                  if (value!.trim().isEmpty) {
                     return "Please confirm your password";
+                  } else if (passwordController.text !=
+                      confirmPasswordController.text) {
+                    return "Password does not match";
                   }
+                  return null;
                 },
                 decoration: const InputDecoration(
                     filled: true,
@@ -123,11 +168,17 @@ class RegisterView extends StatelessWidget {
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (globalKey.currentState!.validate()) {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              TopLeftPhoto(child: TasksView())));
+                      if (await signUp(
+                          emailController.text, passwordController.text)) {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                TopLeftPhoto(child: Login())));
+                        return;
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Email already exists")));
                     }
                   },
                   child: const Text("Register"),
@@ -148,8 +199,7 @@ class RegisterView extends StatelessWidget {
                       Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const TopLeftPhoto(child: Login()),
+                            builder: (context) => TopLeftPhoto(child: Login()),
                           ));
                     },
                     child: const Text(

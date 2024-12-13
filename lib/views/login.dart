@@ -1,10 +1,35 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:to_do_app/views/register_view.dart';
 import 'package:to_do_app/views/tasks_view.dart';
 import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class Login extends StatelessWidget {
-  const Login({super.key});
+  Login({super.key});
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  Future<bool> signIn(String email, String password) async {
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (response.session != null) {
+        log('User signed in successfully: ${response.session!.user.email}');
+        return true;
+      } else {
+        log('Unexpected issue during sign-in.');
+        return false;
+      }
+    } catch (e) {
+      log('Sign in failed: $e');
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +64,12 @@ class Login extends StatelessWidget {
                 height: 50,
               ),
               TextFormField(
+                controller: emailController,
                 validator: (value) {
-                  if (value!.isEmpty) {
+                  if (value!.trim().isEmpty) {
                     return "Please enter your email";
                   }
+                  return null;
                 },
                 decoration: const InputDecoration(
                     filled: true,
@@ -57,10 +84,12 @@ class Login extends StatelessWidget {
                 height: 20,
               ),
               TextFormField(
+                controller: passwordController,
                 validator: (value) {
-                  if (value!.isEmpty) {
+                  if (value!.trim().isEmpty) {
                     return "Please enter your password";
                   }
+                  return null;
                 },
                 decoration: const InputDecoration(
                     filled: true,
@@ -92,12 +121,17 @@ class Login extends StatelessWidget {
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (globalKey.currentState!.validate()) {
+                  onPressed: () async {
+                    if (await signIn(
+                        emailController.text, passwordController.text)) {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) =>
                               TopLeftPhoto(child: TasksView())));
+                      return;
                     }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Invalid email or password")));
                   },
                   child: const Text("Login"),
                 ),
@@ -118,7 +152,7 @@ class Login extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const TopLeftPhoto(child: RegisterView()),
+                                TopLeftPhoto(child: RegisterView()),
                           ));
                     },
                     child: const Text(
