@@ -9,7 +9,10 @@ import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class DashBoardScreen extends StatelessWidget {
   DashBoardScreen({super.key});
-
+  final data = Supabase.instance.client
+      .from('tasks')
+      .select()
+      .order('id', ascending: true);
   Future<bool> signOut() async {
     try {
       await Supabase.instance.client.auth.signOut();
@@ -22,6 +25,7 @@ class DashBoardScreen extends StatelessWidget {
   }
 
   final TextEditingController taskController = TextEditingController();
+
   String returnName() {
     final user = Supabase.instance.client.auth.currentUser;
     if (user!.userMetadata!['name'] != null) {
@@ -196,7 +200,7 @@ class DashBoardScreen extends StatelessWidget {
                                       onPressed: () {
                                         if (taskController.text.isNotEmpty) {
                                           newTaskCubit.addNewTask(
-                                              taskController.text,false);
+                                              taskController.text, false);
                                         }
                                         taskController.clear();
                                         Navigator.of(ctx).pop();
@@ -220,31 +224,38 @@ class DashBoardScreen extends StatelessWidget {
                   const SizedBox(height: 5),
                   BlocBuilder<NewTaskCubit, List<Map<String, dynamic>>>(
                     builder: (context, state) {
-                      return Expanded(
-                        child: ListView.builder(
-                          itemCount: state.length,
-                          itemBuilder: (context, index) {
-                            return Row(
-                              children: [
-                                Checkbox(
-                                  value: state[index]['isCompleted'],
-                                  onChanged: (value) {
-                                    newTaskCubit.toggleState(index);
+                      return FutureBuilder(
+                        future: data,
+                        builder: (context, snapshot) => !snapshot.hasData
+                            ? const CircularProgressIndicator()
+                            : Expanded(
+                                child: ListView.builder(
+                                  itemCount: snapshot.data!.length,
+                                  itemBuilder: (context, index) {
+                                    return Row(
+                                      children: [
+                                        Checkbox(
+                                          value: snapshot.data![index]
+                                              ['isCompleted'],
+                                          onChanged: (value) {
+                                            newTaskCubit.toggleState(index);
+                                          },
+                                          activeColor: const Color(0xFF50C2C9),
+                                        ),
+                                        Text(
+                                          snapshot.data![index]['title'],
+                                          style: TextStyle(
+                                            decoration: snapshot.data![index]
+                                                    ['isCompleted']
+                                                ? TextDecoration.lineThrough
+                                                : TextDecoration.none,
+                                          ),
+                                        ),
+                                      ],
+                                    );
                                   },
-                                  activeColor: const Color(0xFF50C2C9),
                                 ),
-                                Text(
-                                  state[index]['title'],
-                                  style: TextStyle(
-                                    decoration: state[index]['isCompleted']
-                                        ? TextDecoration.lineThrough
-                                        : TextDecoration.none,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                              ),
                       );
                     },
                   ),
