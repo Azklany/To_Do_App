@@ -13,24 +13,26 @@ class RegisterView extends StatelessWidget {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  Future<bool> signUp(String email, String password) async {
-    try {
-      final response = await Supabase.instance.client.auth.signUp(
-        email: email,
-        password: password,
-      );
-      if (response.user != null) {
-        log('User signed up successfully: ${response.user!.email}');
-        return true;
-      } else {
-        log('Unexpected issue during sign-up.');
-        return false;
-      }
-    } catch (e) {
-      log('Sign up failed: $e');
+  Future<bool> signUp(String email, String password, String name) async {
+  try {
+    final response = await Supabase.instance.client.auth.signUp(
+      email: email,
+      password: password,
+      data: {'name': name}, // Store the user's name in metadata
+    );
+
+    if (response.user != null) {
+      log('User signed up successfully: ${response.user!.email}');
+      return true;
+    } else {
+      log('Unexpected issue during sign-up.');
       return false;
     }
+  } catch (e) {
+    log('Sign up failed: $e');
+    return false;
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +173,7 @@ class RegisterView extends StatelessWidget {
                   onPressed: () async {
                     if (globalKey.currentState!.validate()) {
                       if (await signUp(
-                          emailController.text, passwordController.text)) {
+                          emailController.text, passwordController.text, nameController.text)) {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) =>
                                 TopLeftPhoto(child: Login())));

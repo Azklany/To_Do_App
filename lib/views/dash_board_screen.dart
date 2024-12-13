@@ -1,73 +1,42 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:to_do_app/cubits/new_task_cubit.dart';
+import 'package:to_do_app/views/login.dart';
+import 'package:to_do_app/widgets/top_left_photo.dart';
 
-class DashBoardScreen extends StatefulWidget {
-  const DashBoardScreen({super.key});
+class DashBoardScreen extends StatelessWidget {
+  DashBoardScreen({super.key});
 
-  @override
-  State<DashBoardScreen> createState() => _DashBoardScreenState();
-}
-
-class _DashBoardScreenState extends State<DashBoardScreen> {
-  final List<Map<String, dynamic>> tasks = [
-    {'title': 'Learning Programming by 12PM', 'isCompleted': false},
-    {'title': 'Learn how to cook by 1PM', 'isCompleted': false},
-    {'title': 'Learn how to play at 2PM', 'isCompleted': false},
-    {'title': 'Have lunch at 4PM', 'isCompleted': false},
-    {'title': 'Going to travel 6PM', 'isCompleted': false},
-  ];
-
-  final TextEditingController taskController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
+  Future<bool> signOut() async {
+    try {
+      await Supabase.instance.client.auth.signOut();
+      log('User signed out successfully!');
+      return true;
+    } catch (e) {
+      log('Sign out failed: $e');
+      return false;
+    }
   }
 
-  void _addNewTask() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Add New Task'),
-          content: TextField(
-            controller: taskController,
-            decoration: const InputDecoration(
-                hintText: 'Enter your task',
-                fillColor: Color(0xFF50C2C9),
-                filled: true),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Color(0xFF50C2C9)),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                if (taskController.text.isNotEmpty) {
-                  setState(() {
-                    tasks.add(
-                        {'title': taskController.text, 'isCompleted': false});
-                  });
-                }
-                taskController.clear();
-                Navigator.of(context).pop();
-              },
-              child:
-                  const Text('Add', style: TextStyle(color: Color(0xFF50C2C9))),
-            ),
-          ],
-        );
-      },
-    );
+  final TextEditingController taskController = TextEditingController();
+  String returnName() {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user!.userMetadata!['name'] != null) {
+      String? name = user.userMetadata?['name']; // Access the stored name
+      log('User name: $name');
+      return name!;
+    } else {
+      String name = "skyLine";
+      return name;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final newTaskCubit = context.read<NewTaskCubit>();
     return Scaffold(
       body: Column(
         children: [
@@ -87,7 +56,17 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       IconButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            if (await signOut()) {
+                              await Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => TopLeftPhoto(
+                                    child: Login(),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                           icon: const Icon(
                             Icons.logout_sharp,
                             color: Colors.white,
@@ -102,9 +81,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 const SizedBox(
                   height: 10,
                 ),
-                const Text(
-                  "Welcome Skyline",
-                  style: TextStyle(
+                Text(
+                  "Welcome ${returnName()}",
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold),
@@ -189,7 +168,48 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                          onPressed: _addNewTask,
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) {
+                                return AlertDialog(
+                                  title: const Text('Add New Task'),
+                                  content: TextField(
+                                    controller: taskController,
+                                    decoration: const InputDecoration(
+                                        hintText: 'Enter your task',
+                                        fillColor: Color(0xFF50C2C9),
+                                        filled: true),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(ctx).pop();
+                                      },
+                                      child: const Text(
+                                        'Cancel',
+                                        style:
+                                            TextStyle(color: Color(0xFF50C2C9)),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        if (taskController.text.isNotEmpty) {
+                                          newTaskCubit.addNewTask(
+                                              taskController.text,false);
+                                        }
+                                        taskController.clear();
+                                        Navigator.of(ctx).pop();
+                                      },
+                                      child: const Text('Add',
+                                          style: TextStyle(
+                                              color: Color(0xFF50C2C9))),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                           icon: const Icon(
                             Icons.add,
                             size: 30,
@@ -198,33 +218,35 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                     ],
                   ),
                   const SizedBox(height: 5),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        return Row(
-                          children: [
-                            Checkbox(
-                              value: tasks[index]['isCompleted'],
-                              onChanged: (value) {
-                                setState(() {
-                                  tasks[index]['isCompleted'] = value!;
-                                });
-                              },
-                              activeColor: Color(0xFF50C2C9),
-                            ),
-                            Text(
-                              tasks[index]['title'],
-                              style: TextStyle(
-                                decoration: tasks[index]['isCompleted']
-                                    ? TextDecoration.lineThrough
-                                    : TextDecoration.none,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                  BlocBuilder<NewTaskCubit, List<Map<String, dynamic>>>(
+                    builder: (context, state) {
+                      return Expanded(
+                        child: ListView.builder(
+                          itemCount: state.length,
+                          itemBuilder: (context, index) {
+                            return Row(
+                              children: [
+                                Checkbox(
+                                  value: state[index]['isCompleted'],
+                                  onChanged: (value) {
+                                    newTaskCubit.toggleState(index);
+                                  },
+                                  activeColor: const Color(0xFF50C2C9),
+                                ),
+                                Text(
+                                  state[index]['title'],
+                                  style: TextStyle(
+                                    decoration: state[index]['isCompleted']
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

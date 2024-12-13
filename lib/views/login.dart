@@ -1,9 +1,11 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:to_do_app/cubits/new_task_cubit.dart';
+import 'package:to_do_app/views/dash_board_screen.dart';
 import 'package:to_do_app/views/register_view.dart';
-import 'package:to_do_app/views/tasks_view.dart';
 import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class Login extends StatelessWidget {
@@ -125,13 +127,15 @@ class Login extends StatelessWidget {
                     if (await signIn(
                         emailController.text, passwordController.text)) {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              TopLeftPhoto(child: TasksView())));
+                          builder: (context) => TopLeftPhoto(
+                                  child: BlocProvider(
+                                create: (context) => NewTaskCubit(),
+                                child: DashBoardScreen(),
+                              ))));
                       return;
                     }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Invalid email or password")));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text("Invalid email or password")));
                   },
                   child: const Text("Login"),
                 ),
