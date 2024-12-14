@@ -102,7 +102,7 @@ class DashBoardScreen extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(right: 20),
                 child: Text(
-                  "Good Afternoon",
+                  "Welcome",
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 15,
@@ -223,7 +223,13 @@ class DashBoardScreen extends StatelessWidget {
                   BlocBuilder<NewTaskCubit, List<Map<String, dynamic>>>(
                     builder: (context, state) {
                       return state.isEmpty
-                          ? const Text("No tasks added yet")
+                          ? const SingleChildScrollView(
+                              child: Text(
+                                'No Task',
+                                style: TextStyle(
+                                    fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            )
                           : Expanded(
                               child: ListView.builder(
                                 itemCount: state.length,

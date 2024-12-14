@@ -2,15 +2,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NewTaskCubit extends Cubit<List<Map<String, dynamic>>> {
-  
-
   NewTaskCubit() : super([]);
 
   void fetch() async {
     final user = Supabase.instance.client.auth.currentUser;
     final List<dynamic> data = await Supabase.instance.client
         .from('tasks')
-        .select().eq('user_id', user!.id)
+        .select()
+        .eq('user_id', user!.id)
         .order('id', ascending: true);
     final List<Map<String, dynamic>> tasks = data.cast<Map<String, dynamic>>();
     emit(tasks);
@@ -29,18 +28,31 @@ class NewTaskCubit extends Cubit<List<Map<String, dynamic>>> {
 
   Future toggleState(int index) async {
     final list = List<Map<String, dynamic>>.from(state);
+    final user = Supabase.instance.client.auth.currentUser;
+
     final database = Supabase.instance.client.from('tasks');
+    final List<dynamic> data = await database
+        .select()
+        .eq('user_id', user!.id)
+        .order('id', ascending: true);
+    final List<dynamic> ids = data.map((item) => item['id']).toList();
     list[index]['isCompleted'] = !list[index]['isCompleted'];
     emit(list);
     await database.update({'isCompleted': list[index]['isCompleted']}).eq(
-        'id', index + 1);
+        'id', ids[index]);
   }
 
-  void updateTask(int index , String newTitle) async {
+  void updateTask(int index, String newTitle) async {
+    final user = Supabase.instance.client.auth.currentUser;
     final list = List<Map<String, dynamic>>.from(state);
     final database = Supabase.instance.client.from('tasks');
+    final List<dynamic> data = await database
+        .select()
+        .eq('user_id', user!.id)
+        .order('id', ascending: true);
+    final List<dynamic> ids = data.map((item) => item['id']).toList();
     list[index]['title'] = newTitle;
     emit(list);
-    await database.update({'title' : newTitle}).eq('id', index + 1);
+    await database.update({'title': newTitle}).eq('id', ids[index]);
   }
 }
