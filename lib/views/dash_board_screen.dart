@@ -9,10 +9,7 @@ import 'package:to_do_app/widgets/top_left_photo.dart';
 
 class DashBoardScreen extends StatelessWidget {
   DashBoardScreen({super.key});
-  final data = Supabase.instance.client
-      .from('tasks')
-      .select()
-      .order('id', ascending: true);
+
   Future<bool> signOut() async {
     try {
       await Supabase.instance.client.auth.signOut();
@@ -25,7 +22,7 @@ class DashBoardScreen extends StatelessWidget {
   }
 
   final TextEditingController taskController = TextEditingController();
-
+  final TextEditingController editController = TextEditingController();
   String returnName() {
     final user = Supabase.instance.client.auth.currentUser;
     if (user!.userMetadata!['name'] != null) {
@@ -41,6 +38,7 @@ class DashBoardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final newTaskCubit = context.read<NewTaskCubit>();
+    newTaskCubit.fetch();
     return Scaffold(
       body: Column(
         children: [
@@ -224,39 +222,99 @@ class DashBoardScreen extends StatelessWidget {
                   const SizedBox(height: 5),
                   BlocBuilder<NewTaskCubit, List<Map<String, dynamic>>>(
                     builder: (context, state) {
-                      return FutureBuilder(
-                        future: data,
-                        builder: (context, snapshot) => !snapshot.hasData
-                            ? const CircularProgressIndicator()
-                            : Expanded(
-                                child: ListView.builder(
-                                  itemCount: snapshot.data!.length,
-                                  itemBuilder: (context, index) {
-                                    return Row(
-                                      children: [
-                                        Checkbox(
-                                          value: snapshot.data![index]
-                                              ['isCompleted'],
-                                          onChanged: (value) {
-                                            newTaskCubit.toggleState(index);
-                                          },
-                                          activeColor: const Color(0xFF50C2C9),
-                                        ),
-                                        Text(
-                                          snapshot.data![index]['title'],
-                                          style: TextStyle(
-                                            decoration: snapshot.data![index]
-                                                    ['isCompleted']
-                                                ? TextDecoration.lineThrough
-                                                : TextDecoration.none,
+                      return state.isEmpty
+                          ? const Text("No tasks added yet")
+                          : Expanded(
+                              child: ListView.builder(
+                                itemCount: state.length,
+                                itemBuilder: (context, index) {
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Checkbox(
+                                            value: state[index]['isCompleted'],
+                                            onChanged: (value) {
+                                              newTaskCubit.toggleState(index);
+                                            },
+                                            activeColor:
+                                                const Color(0xFF50C2C9),
                                           ),
+                                          Text(
+                                            state[index]['title'],
+                                            style: TextStyle(
+                                              decoration: state[index]
+                                                      ['isCompleted']
+                                                  ? TextDecoration.lineThrough
+                                                  : TextDecoration.none,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          showDialog(
+                                              context: context,
+                                              builder: (ctx) {
+                                                return AlertDialog(
+                                                  title:
+                                                      const Text('Edit Task'),
+                                                  content: TextField(
+                                                    controller: editController,
+                                                    decoration:
+                                                        const InputDecoration(
+                                                            hintText:
+                                                                'Edit your task',
+                                                            fillColor: Color(
+                                                                0xFF50C2C9),
+                                                            filled: true),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(ctx).pop();
+                                                      },
+                                                      child: const Text(
+                                                        'Cancel',
+                                                        style: TextStyle(
+                                                            color: Color(
+                                                                0xFF50C2C9)),
+                                                      ),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        if (editController
+                                                            .text.isNotEmpty) {
+                                                          newTaskCubit
+                                                              .updateTask(
+                                                                  index,
+                                                                  editController
+                                                                      .text);
+                                                        }
+                                                        taskController.clear();
+                                                        Navigator.of(ctx).pop();
+                                                      },
+                                                      child: const Text('Add',
+                                                          style: TextStyle(
+                                                              color: Color(
+                                                                  0xFF50C2C9))),
+                                                    ),
+                                                  ],
+                                                );
+                                              });
+                                        },
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Color(0xFF50C2C9),
                                         ),
-                                      ],
-                                    );
-                                  },
-                                ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
-                      );
+                            );
                     },
                   ),
                 ],
