@@ -124,8 +124,9 @@ class Login extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    if (await signIn(
-                        emailController.text, passwordController.text)) {
+                    if (globalKey.currentState!.validate() &&
+                        await signIn(
+                            emailController.text, passwordController.text)) {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => TopLeftPhoto(
                                   child: BlocProvider(
